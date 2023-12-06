@@ -26,7 +26,7 @@ function whichFlatIsNext(knownLastDuty, nextCollection) {
 }
 
 export default function Home(props) {
-  const knownLastDuty = { flat: "B", date: "2023-10-30" };
+  const knownLastDuty = { flat: "C", date: "2023-12-04" };
   const today = new Date();
 
   const nextCollection = props.Refuse_collection_dates.map(
