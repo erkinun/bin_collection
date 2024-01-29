@@ -26,7 +26,7 @@ function whichFlatIsNext(knownLastDuty, nextCollection) {
 }
 
 export default function Home(props) {
-  const knownLastDuty = { flat: "B", date: "2023-12-04" };
+  const knownLastDuty = { flat: "C", date: "2024-01-29" };
   const today = new Date();
 
   const nextCollection = props.Refuse_collection_dates.map(
@@ -52,11 +52,10 @@ export default function Home(props) {
 
         <section>Today is {new Date().toDateString()}</section>
         <section>
-          Based on the information that flat {knownLastDuty.flat} has done the
-          bins on {knownLastDuty.date}{" "}
+          Flat {knownLastDuty.flat} has done the bins on {knownLastDuty.date}{" "}
         </section>
         <section>
-          Therefore the next duty is for flat{" "}
+          Therefore the next duty is for Flat{" "}
           {whichFlatIsNext(knownLastDuty, nextCollection)} on{" "}
           {nextCollection.toDateString()}
         </section>
