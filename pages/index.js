@@ -20,13 +20,13 @@ function whichFlatIsNext(knownLastDuty, nextCollection) {
   // difference between next collection date and last known date
   const diff = nextCollection - knownLastDutyDate;
   // how many weeks is that?
-  const weeks = diff / (1000 * 60 * 60 * 24 * 7);
+  const weeks = Math.floor(diff / (1000 * 60 * 60 * 24 * 7));
   const nextDutyIndex = (lastDutyIndex + weeks) % flats.length;
   return flats[nextDutyIndex];
 }
 
 export default function Home(props) {
-  const knownLastDuty = { flat: "C", date: "2024-01-29" };
+  const knownLastDuty = { flat: "C", date: "2024-03-25" };
   const today = new Date();
 
   const nextCollection = props.Refuse_collection_dates.map(
