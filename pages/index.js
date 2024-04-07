@@ -20,7 +20,8 @@ function whichFlatIsNext(knownLastDuty, nextCollection) {
   // difference between next collection date and last known date
   const diff = nextCollection - knownLastDutyDate;
   // how many weeks is that?
-  const weeks = Math.floor(diff / (1000 * 60 * 60 * 24 * 7));
+  const weeks = Math.ceil(diff / (1000 * 60 * 60 * 24 * 7));
+
   const nextDutyIndex = (lastDutyIndex + weeks) % flats.length;
   return flats[nextDutyIndex];
 }
