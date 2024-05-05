@@ -20,7 +20,15 @@ function whichFlatIsNext(knownLastDuty, nextCollection) {
   // difference between next collection date and last known date
   const diff = nextCollection - knownLastDutyDate;
   // how many weeks is that?
-  const weeks = Math.ceil(diff / (1000 * 60 * 60 * 24 * 7));
+  let weeks = Math.ceil(diff / (1000 * 60 * 60 * 24 * 7));
+
+  // check if next collection date is a monday or not
+  const isMonday = nextCollection.getDay() === 1;
+  // if not, it might be a bank holiday so the collection is on the next day
+  // that means that the duty is shifted by minus 1
+  if (!isMonday) {
+    weeks -= 1;
+  }
 
   const nextDutyIndex = (lastDutyIndex + weeks) % flats.length;
   return flats[nextDutyIndex];
