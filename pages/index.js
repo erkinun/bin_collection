@@ -2,8 +2,7 @@ import Head from "next/head";
 import styles from "../styles/Home.module.css";
 
 function findtheDate(dateString = "06 November", year = 2023) {
-  const date = new Date(`${dateString} ${year}`);
-  return date;
+  return new Date(`${dateString} ${year}`);
 }
 
 // todo how to sort by date?
@@ -43,6 +42,18 @@ export default function Home(props) {
   )
     .map((d) => findtheDate(d, today.getFullYear()))
     .sort(dateSorter)[0]; // bit hacky
+
+  console.log({
+    nextCollection,
+    today,
+    tomorrow: nextCollection > today,
+  });
+
+  // so there is a problem where the next collection date might not be updated
+  // like it is Tuesday and the service might still show Monday as the collection date
+  if (nextCollection < today) {
+    nextCollection.setDate(nextCollection.getDate() + 7);
+  }
 
   return (
     <div className={styles.container}>
