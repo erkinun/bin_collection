@@ -1,8 +1,10 @@
 import Head from "next/head";
 import styles from "../styles/Home.module.css";
+import * as cheerio from "cheerio";
 
-function findtheDate(dateString = "06 November", year = 2023) {
-  return new Date(`${dateString} ${year}`);
+function findtheDate(dateString) {
+  let [day, month, year] = dateString.split("/");
+  return new Date(+year, +month - 1, +day);
 }
 
 // todo how to sort by date?
@@ -36,18 +38,17 @@ function whichFlatIsNext(knownLastDuty, nextCollection) {
 export default function Home(props) {
   const knownLastDuty = { flat: "C", date: "2024-03-25" };
   const today = new Date();
-
-  const nextCollection = props.Refuse_collection_dates.map(
-    (item) => item.Next_Collection
-  )
+  console.log({ props });
+  const nextCollection = props.serviceInfos
+    .map((item) => item.nextCollection)
     .map((d) => findtheDate(d, today.getFullYear()))
     .sort(dateSorter)[0]; // bit hacky
 
-  console.log({
-    nextCollection,
-    today,
-    tomorrow: nextCollection > today,
-  });
+  // console.log({
+  //   nextCollection,
+  //   today,
+  //   tomorrow: nextCollection > today,
+  // });
 
   // so there is a problem where the next collection date might not be updated
   // like it is Tuesday and the service might still show Monday as the collection date
@@ -81,14 +82,15 @@ export default function Home(props) {
         </section>
 
         <ul>
-          {props.Refuse_collection_dates.map((item) => {
-            const topic = item._.replace(/<[^>]*>?/gm, "");
+          {props.serviceInfos.map((item) => {
             return (
-              <li key={topic}>
+              <li key={item.serviceName}>
                 <section>
-                  <h3>{topic}</h3>
-                  <div>Last Collection: {item.Last_Collection}</div>
-                  <div>Next Collection: {item.Next_Collection}</div>
+                  <h3>{item.serviceName}</h3>
+                  <div>Next Collection: {item.nextCollection}</div>
+                  <div>Schedule: {item.schedule}</div>
+                  <div>Last Collection: {item.lastCollection}</div>
+                  <div>{item.collectionInfo}</div>
                 </section>
               </li>
             );
@@ -111,11 +113,52 @@ export default function Home(props) {
 
 export async function getServerSideProps() {
   const res = await fetch(
-    "https://my.haringey.gov.uk/getdata.aspx?RequestType=LocalInfo&ms=mapsources/MyHouse&format=JSON&group=Property%20details|Refuse%20collection%20dates&uid=100021204359"
+    // defunct url sadly, "https://my.haringey.gov.uk/getdata.aspx?RequestType=LocalInfo&ms=mapsources/MyHouse&format=JSON&group=Property%20details|Refuse%20collection%20dates&uid=100021204359"
+    "https://wastecollections.haringey.gov.uk/property/100021204359"
   );
 
-  const data = await res.json();
-  return {
-    props: data.Results ?? {},
-  };
+  try {
+    const html = await res.text();
+    const $ = cheerio.load(html);
+
+    // Use cheerio selectors to extract information
+    const title = $("head > title").text();
+    const services = $("h3.service-name");
+    const serviceInfos = await Promise.all(
+      services.map((_, d) => {
+        const serviceHeader = $(d);
+
+        const div = serviceHeader.next();
+
+        return {
+          serviceName: serviceHeader.text().trim(),
+          nextCollection: div
+            .find("tbody .next-service")
+            .text()
+            .replace("Next collection", "")
+            .trim(),
+          lastCollection: div
+            .find("tbody .last-service")
+            .text()
+            .replace("Last collection", "")
+            .trim(),
+          schedule: div
+            .find("tbody .schedule")
+            .text()
+            .replace("Collection day", "")
+            .trim(),
+          collectionInfo: div
+            .find(".collection-info .service-text")
+            .text()
+            .trim(),
+        };
+      })
+    );
+    return {
+      props: { serviceInfos },
+    };
+  } catch (error) {
+    console.error(error);
+    return { props: {} };
+  }
 }
